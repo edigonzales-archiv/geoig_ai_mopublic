@@ -46,6 +46,7 @@ public class DatabaseUtils {
 
         config.setNameOptimization("topic");
         config.setMaxSqlNameLength("60");
+//        config.setSqlNull(arg0);
         
         config.setDefaultSrsAuthority("EPSG");
         config.setDefaultSrsCode("21781");
