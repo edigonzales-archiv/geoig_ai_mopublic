@@ -1,87 +1,51 @@
-DELETE FROM av_mopublic.fixpunktekategorie__lfp WHERE bfsnr = ?;
-
-INSERT INTO av_mopublic.fixpunktekategorie__lfp(tid, kategorie, nbident, nummer, geometrie, lagegen, hoehegeom, hoehegen, punktzeichen, stand_am, bfsnr)
---SELECT tid, b.designation_d as kategorie, nbident, nummer,  ST_SetSRID(ST_MakePoint(ST_X(geometrie), ST_Y(geometrie), hoehegeom), 21781) as geometrie, lagegen, hoehegeom, hoehegen, punktzeichen, to_date(a.stand_am, 'YYYYMMDD') as stand_am, bfsnr
-SELECT tid, b.designation_d as kategorie, nbident, nummer,
-CASE WHEN hoehegeom IS NULL
-THEN
-  ST_SetSRID(ST_Force_3d(ST_PointFromText('POINT(' || ST_X(geometrie) || ' ' || ST_Y(geometrie) || ')')), 21781)
-ELSE
-  ST_SetSRID(ST_Force_3d(ST_MakePoint(ST_X(geometrie), ST_Y(geometrie), hoehegeom)), 21781)
-END as geometrie,
-lagegen, hoehegeom, hoehegen, punktzeichen, to_date(a.stand_am, 'YYYYMMDD') as stand_am, bfsnr
+SELECT g.*, h.gwr_egid
 FROM
 (
-  SELECT a.tid, 0 as kategorie, a.nbident, nummer, geometrie, lagegen, hoehegeom, hoehegen, b.designation_d as punktzeichen,
-    CASE
-      WHEN c.gueltigereintrag IS NULL THEN c.datum1
-      ELSE c.gueltigereintrag
-    END AS stand_am,
-  a.gem_bfs as bfsnr
-  FROM av_avdpool_ch.fixpunktekategorie1_lfp1 as a, av_mopublic_meta.mark_type as b, av_avdpool_ch.fixpunktekategorie1_lfp1nachfuehrung as c
+ SELECT b.tid, b.geometrie as geometrie, d.designation_d as qualitaetsstandard, c.designation_d AS art, to_date(b.stand_am, 'YYYYMMDD') as stand_am, b.gem_bfs AS bfsnr
+ FROM av_mopublic_meta.qualitystandard_type d, av_mopublic_meta.lcs_type c,
+ (
+  SELECT a.tid, a.gem_bfs, a.art,
+                CASE
+                    WHEN b.gueltigereintrag IS NULL THEN b.datum1
+		    ELSE b.gueltigereintrag
+                END AS stand_am,
+                CASE
+                    WHEN qualitaet IS NULL THEN 0
+                    ELSE qualitaet
+                END AS qualitaet, geometrie
+  FROM av_avdpool_ch.bodenbedeckung_boflaeche a, av_avdpool_ch.bodenbedeckung_bbnachfuehrung b
   WHERE a.gem_bfs = ?
-  AND c.gem_bfs = ?
-  AND a.entstehung = c.tid
-  AND a.punktzeichen = b.code
-UNION ALL
-  SELECT a.tid, 1 as kategorie, a.nbident, nummer, geometrie, lagegen, hoehegeom, hoehegen, b.designation_d as punktzeichen,
-    CASE
-      WHEN c.gueltigereintrag IS NULL THEN c.datum1
-      ELSE c.gueltigereintrag
-    END AS stand_am,
-  a.gem_bfs as bfsnr
-  FROM av_avdpool_ch.fixpunktekategorie1_hfp1 as a, av_mopublic_meta.mark_type as b, av_avdpool_ch.fixpunktekategorie1_hfp1nachfuehrung as c
-  WHERE a.gem_bfs = ?
-  AND c.gem_bfs = ?
-  AND a.entstehung = c.tid
-  AND 8 = b.code
-UNION ALL
-  SELECT a.tid, 2 as kategorie, a.nbident, nummer, geometrie, lagegen, hoehegeom, hoehegen, b.designation_d as punktzeichen,
-    CASE
-      WHEN c.gueltigereintrag IS NULL THEN c.datum1
-      ELSE c.gueltigereintrag
-    END AS stand_am,
-  a.gem_bfs as bfsnr
-  FROM av_avdpool_ch.fixpunktekategorie2_lfp2 as a, av_mopublic_meta.mark_type as b, av_avdpool_ch.fixpunktekategorie2_lfp2nachfuehrung as c
-  WHERE a.gem_bfs = ?
-  AND c.gem_bfs = ?
-  AND a.entstehung = c.tid
-  AND a.punktzeichen = b.code
-UNION ALL
-  SELECT a.tid, 3 as kategorie, a.nbident, nummer, geometrie, lagegen, hoehegeom, hoehegen, b.designation_d as punktzeichen,
-    CASE
-      WHEN c.gueltigereintrag IS NULL THEN c.datum1
-      ELSE c.gueltigereintrag
-    END AS stand_am,
-  a.gem_bfs as bfsnr
-  FROM av_avdpool_ch.fixpunktekategorie2_hfp2 as a, av_mopublic_meta.mark_type as b, av_avdpool_ch.fixpunktekategorie2_hfp2nachfuehrung as c
-  WHERE a.gem_bfs = ?
-  AND c.gem_bfs = ?
-  AND a.entstehung = c.tid
-  AND 8 = b.code
-UNION ALL
-  SELECT a.tid, 4 as kategorie, a.nbident, nummer, geometrie, lagegen, hoehegeom, hoehegen, b.designation_d as punktzeichen,
-    CASE
-      WHEN c.gueltigereintrag IS NULL THEN c.datum1
-      ELSE c.gueltigereintrag
-    END AS stand_am,
-  a.gem_bfs as bfsnr
-  FROM av_avdpool_ch.fixpunktekategorie3_lfp3 as a, av_mopublic_meta.mark_type as b, av_avdpool_ch.fixpunktekategorie3_lfp3nachfuehrung as c
-  WHERE a.gem_bfs = ?
-  AND c.gem_bfs = ?
-  AND a.entstehung = c.tid
-  AND a.punktzeichen = b.code
-UNION ALL
-  SELECT a.tid, 5 as kategorie, a.nbident, nummer, geometrie, lagegen, hoehegeom, hoehegen, b.designation_d as punktzeichen,
-    CASE
-      WHEN c.gueltigereintrag IS NULL THEN c.datum1
-      ELSE c.gueltigereintrag
-    END AS stand_am,
-  a.gem_bfs as bfsnr
-  FROM av_avdpool_ch.fixpunktekategorie3_hfp3 as a, av_mopublic_meta.mark_type as b, av_avdpool_ch.fixpunktekategorie3_hfp3nachfuehrung as c
-  WHERE a.gem_bfs = ?
-  AND c.gem_bfs = ?
-  AND a.entstehung = c.tid
-  AND 8 = b.code
-) as a, av_mopublic_meta.control_point_category as b
-WHERE a.kategorie = b.code;
+  AND b.gem_bfs = ?
+  AND a.entstehung = b.tid
+ ) b
+ WHERE b.art::double precision = c.code AND b.qualitaet::double precision = d.code
+) as g
+LEFT JOIN
+(
+ SELECT *
+ FROM av_avdpool_ch.bodenbedeckung_gebaeudenummer
+ WHERE gem_bfs = ?
+) as h ON h.gebaeudenummer_von = g.tid;
+
+
+
+SELECT a.tid, a.objektname_von as bbtext_von, c.designation_e AS typ, a.name AS nummer_name, b.pos, b.ori,
+ CASE WHEN b.hali IS NULL
+  THEN 1
+  ELSE b.hali
+ END as hali,
+ CASE WHEN b.vali IS NULL
+  THEN 2
+  ELSE b.vali
+ END as vali,
+ a.gem_bfs AS bfsnr, ST_X(b.pos) AS y, ST_Y(b.pos) AS x, (100::double precision - b.ori) * 0.9::double precision AS rot,
+ CASE WHEN b.hali_txt IS NULL
+  THEN 'Center'
+  ELSE b.hali_txt
+ END as hali_txt,
+ CASE WHEN b.vali_txt IS NULL
+  THEN 'Half'
+  ELSE b.vali_txt
+ END as vali_txt
+FROM av_avdpool_ch.bodenbedeckung_objektname a, av_avdpool_ch.bodenbedeckung_objektnamepos b, av_mopublic_meta.text_type c
+WHERE a.gem_bfs = ? AND b.gem_bfs = ? AND a.tid::text = b.objektnamepos_von::text AND 1::double precision = c.code;

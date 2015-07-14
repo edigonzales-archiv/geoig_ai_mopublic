@@ -29,7 +29,8 @@ public class DatabaseUtils {
 		
 	}
 	
-	public void createSchema(String modelName) throws Ili2dbException {
+	public void createSchema(String modelName) throws Ili2dbException, ClassNotFoundException, SQLException {
+		// Create the schema with all the empty tables with ili2pg.
         Config config = new Config();
         config.setDbdatabase(dbdatabase);
         config.setDbhost(dbhost);
@@ -46,7 +47,8 @@ public class DatabaseUtils {
 
         config.setNameOptimization("topic");
         config.setMaxSqlNameLength("60");
-//        config.setSqlNull(arg0);
+        config.setStrokeArcs("enable");
+//        config.setSqlNull("enable");
         
         config.setDefaultSrsAuthority("EPSG");
         config.setDefaultSrsCode("21781");
@@ -62,6 +64,33 @@ public class DatabaseUtils {
         //
         // Exception works if schema already exists.
         logger.info("Empty database schema created: '" + dbschema +  "'.");
+        
+        // Now create a sequence. We need this for having proper t_id creation handlin.
+		Connection con = null;
+		Statement st = null;
+        		
+		Class.forName("org.postgresql.Driver");
+
+		con = DriverManager.getConnection(dburl, dbusr, dbpwd);
+        con.setAutoCommit(false);
+        
+        st = con.createStatement();
+        st.execute("CREATE SEQUENCE " + dbschema + ".t_id START 1;");
+
+        con.commit();	
+        
+        try {
+        	if (st != null) {
+        		st.close();
+        	}
+        	if (con != null) {
+        		con.close();
+        	}
+        } catch (SQLException e) {
+        	e.printStackTrace();
+        	logger.error(e.getMessage());
+        }
+        logger.info("Sequence created.");
 	}
 	
 	public void dropSchema() throws ClassNotFoundException, SQLException {
@@ -91,7 +120,6 @@ public class DatabaseUtils {
         	e.printStackTrace();
         	logger.error(e.getMessage());
         }
-        
         logger.info("Database schema dropped: '" + dbschema + "' (if existed).");
 	}
 	

@@ -32,6 +32,7 @@ public class App
 			
 			if (cl.hasOption("initdb")) {
 				logger.debug("initdb");
+				// DatabaseUtils -> MOpublicExport?
 				DatabaseUtils dbUtils = new DatabaseUtils();
 				dbUtils.dropSchema();
 				dbUtils.createSchema("MOpublic03_ili2_v13");
