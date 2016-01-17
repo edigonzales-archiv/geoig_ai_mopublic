@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,11 +53,12 @@ public class DatabaseUtils {
         
         config.setDefaultSrsAuthority("EPSG");
         config.setDefaultSrsCode("21781");
-        
+                
         String dburl = "jdbc:postgresql://" + config.getDbhost() + ":" + config.getDbport() + "/" + config.getDbdatabase();
         config.setDburl(dburl);
         
         Ili2db.runSchemaImport(config, "");
+        
         
         //TODO: Check if there is really no exception thrown when .setModeldir() is missing. 
         // In this case it looks in the directory where the software is started (?) and
